@@ -20,19 +20,54 @@
 
 #include "http.h"
 
-static size_t write_cb(void *, size_t, size_t, void *);int
+static size_t write_cb(void *, size_t, size_t, void *);
 
 int
 http_do(struct req *rq)
 {
+	int ret = -1;
 
-	rq->headers = curl_slist_append(headers,
-	    "Content-Type: application/json");
+	/* TODO: check if body */
+	rq->resp.body = malloc(1);
+	rq->resp.bodysz = 0;
 
-	curl_easy_setopt(rq->curl, CURLOPT_URL, url);
-	curl_easy_setopt(rq->curl, CURLOPT_POSTFIELDS, (const char *)data);
-	curl_easy_perform(rq->curl);
+	/* set headers */
+	/* TODO: check if headers */
+	rq->headers = curl_slist_append(rq->headers, HTTP_ACC);
+	rq->headers = curl_slist_append(rq->headers, HTTP_CTY);
+	if (rq->headers == NULL)
+		goto done;
 
+	/* set url */
+	HTTP_SET(rq->curl, CURLOPT_URL, rq->url);
+	/* set post data */
+	HTTP_SET(rq->curl, CURLOPT_POSTFIELDS, (const char *)rq->data);
+	/* set user-agent */
+	HTTP_SET(rq->curl, CURLOPT_USERAGENT, HTTP_UAG);
+	/* send all data to this function  */
+	HTTP_SET(rq->curl, CURLOPT_WRITEFUNCTION, write_cb);
+	/* we pass our 'chunk' struct to the callback function */
+	HTTP_SET(rq->curl, CURLOPT_WRITEDATA, (void *)&rq->resp);
+
+	/* execute request */
+	rq->resp.code = curl_easy_perform(rq->curl);
+	if (rq->resp.code != CURLE_OK)
+		goto done;
+
+	ret = 0;
+done:
+	return (ret);
+}
+
+int
+http_seturl(struct req *rq, const char *url)
+{
+	int ret = 0;
+	if (rq == NULL || url == NULL)
+		ret = -1;
+	if ((rq->url = strdup(url)) == NULL)
+		ret = -1;
+	return (ret);
 }
 
 void
@@ -44,6 +79,10 @@ http_free(struct req *rq)
 		curl_easy_cleanup(rq->curl);
 		curl_global_cleanup();
 	}
+	if (rq->resp.body != NULL)
+		free(rq->resp.body);
+	if (rq->url != NULL)
+		free(rq->url);
 	memset(rq, 0, sizeof(*rq));
 }
 
@@ -52,16 +91,11 @@ http_init(struct req *rq)
 {
 	int ret = 0;
 
+	memset(rq, 0, sizeof(*rq));
+
 	curl_global_init(CURL_GLOBAL_DEFAULT);
 	rq->curl = curl_easy_init();
 	rq->headers = NULL;
-
-	/* headers */
-	rq->headers = curl_slist_append(rq->headers,
-	    "Accept: application/json");
-	if (rq->headers == NULL)
-		ret = -1;
-	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "anticaptcha-c/0.1");
 
 	return (ret);
 }

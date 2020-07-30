@@ -19,26 +19,33 @@
 
 #include <curl/curl.h>
 
-struct res;
-struct req {
-	CURL			*curl;
-	char			*url;
-	struct curl_slist	*headers;
-	struct res		*res;
-	char			*data;
-	size_t			*datasz;
-};
+#define HTTP_CTY "Content-Type: application/json"
+#define HTTP_ACC "Accept: application/json"
+#define HTTP_UAG "anticaptcha-c/0.1"
+
+#define HTTP_SET(x, y, z) do {		\
+	curl_easy_setopt(x, y, z);	\
+} while(0)
 
 struct res {
-	CURLcode	 res;
+	CURLcode	 code;
 	long		 status_code;
-	struct req	*req;
 	char		*body;
 	size_t		 bodysz;
 };
 
+struct req {
+	CURL			*curl;
+	char			*url;
+	struct curl_slist	*headers;
+	struct res		 resp;
+	const char		*data;
+	size_t			datasz;
+};
+
+
 int	http_init(struct req *);
-int	http_seturl(struct req *);
+int	http_seturl(struct req *, const char *);
 int	http_do(struct req *);
 void	http_free(struct req *);
 
