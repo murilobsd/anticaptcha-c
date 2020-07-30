@@ -17,16 +17,19 @@
 #ifndef ANTICAPTCHA_H
 #define ANTICAPTCHA_H
 
-#include <curl/curl.h>
-
 struct anticaptcha {
-	CURL *curl;
-	char *client_key;
+	char		*client_key;
 };
 
 int	anti_init(struct anticaptcha *);
 void	anti_free(struct anticaptcha *);
 int	anti_setkey(struct anticaptcha *, const char *);
 float	anti_getbalance(struct anticaptcha *);
+
+/*
+int http_init(struct req);
+struct resp * http_post(struct req);
+void http_free(kkk
+*/
 
 #endif /* ANTICAPTCHA_H */
