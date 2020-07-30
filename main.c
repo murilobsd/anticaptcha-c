@@ -15,10 +15,8 @@
  */
 
 #include <stdio.h>
-#include <string.h>
 
 #include "anticaptcha.h"
-#include "http.h"
 
 int
 anti(void)
@@ -51,14 +49,6 @@ done:
 int
 main(void)
 {
-	struct req rq;
-	const char *json_obj = "{\"clientKey\" : \"test\"}";
-	http_init(&rq);
-	http_seturl(&rq, "https://httpbin.org/post");
-	http_setdata(&rq, json_obj);
-	http_do(&rq);
-	if (rq.resp.bodysz > 0)
-		printf("%s\n", rq.resp.body);
-	http_free(&rq);
+	int ret = anti();
 	return (0);
 }

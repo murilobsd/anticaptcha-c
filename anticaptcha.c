@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "http.h"
 #include "anticaptcha.h"
 
 float
@@ -29,13 +30,21 @@ anti_getbalance(struct anticaptcha *ant)
 	char		 data[150];
 	int		 res = 0;
 	float		 ret = -1.0;
+	struct req rq;
 
 	memset(data, 0, sizeof(data));
-	/*
-	res = snprintf(data, sizeof(data), post_data, rq->client_key);
-	if (res < 0 || res >= sizeof(post_data))
+
+	res = snprintf(data, sizeof(data), post_data, ant->client_key);
+	if (res < 0 || res >= sizeof(data))
 		return ret;
-	*/
+
+	http_init(&rq);
+	http_seturl(&rq, url);
+	http_setdata(&rq, (const char *)data);
+	http_do(&rq);
+	if (rq.resp.bodysz > 0)
+		printf("%s\n", rq.resp.body);
+	http_free(&rq);
 	ret = 0.0;
 
 	return (ret);

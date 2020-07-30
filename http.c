@@ -52,7 +52,7 @@ http_do(struct req *rq)
 	/* we pass our 'chunk' struct to the callback function */
 	HTTP_SET(rq->curl, CURLOPT_WRITEDATA, (void *)&rq->resp);
 	/* verbose mode ? */
-	HTTP_SET(rq->curl, CURLOPT_VERBOSE, 1L);
+	HTTP_SET(rq->curl, CURLOPT_VERBOSE, 0L);
 
 	/* execute request */
 	rq->resp.code = curl_easy_perform(rq->curl);
