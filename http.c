@@ -40,14 +40,19 @@ http_do(struct req *rq)
 
 	/* set url */
 	HTTP_SET(rq->curl, CURLOPT_URL, rq->url);
+	/* set headers */
+	HTTP_SET(rq->curl, CURLOPT_HTTPHEADER, rq->headers);
 	/* set post data */
-	HTTP_SET(rq->curl, CURLOPT_POSTFIELDS, (const char *)rq->data);
+	printf("Data: %s\n", rq->data);
+	HTTP_SET(rq->curl, CURLOPT_POSTFIELDS, rq->data);
 	/* set user-agent */
 	HTTP_SET(rq->curl, CURLOPT_USERAGENT, HTTP_UAG);
 	/* send all data to this function  */
 	HTTP_SET(rq->curl, CURLOPT_WRITEFUNCTION, write_cb);
 	/* we pass our 'chunk' struct to the callback function */
 	HTTP_SET(rq->curl, CURLOPT_WRITEDATA, (void *)&rq->resp);
+	/* verbose mode ? */
+	HTTP_SET(rq->curl, CURLOPT_VERBOSE, 1L);
 
 	/* execute request */
 	rq->resp.code = curl_easy_perform(rq->curl);
@@ -59,6 +64,18 @@ done:
 	return (ret);
 }
 
+int
+http_setdata(struct req *rq, const char *data)
+{
+	int ret = 0;
+	if (rq == NULL || data == NULL)
+		ret = -1;
+	if (rq->data != NULL)
+		free(rq->data);
+	if ((rq->data = strdup(data)) == NULL)
+		ret = -1;
+	return (ret);
+}
 int
 http_seturl(struct req *rq, const char *url)
 {
@@ -79,6 +96,8 @@ http_free(struct req *rq)
 		curl_easy_cleanup(rq->curl);
 		curl_global_cleanup();
 	}
+	if (rq->data != NULL)
+		free(rq->data);
 	if (rq->resp.body != NULL)
 		free(rq->resp.body);
 	if (rq->url != NULL)

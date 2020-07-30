@@ -39,13 +39,14 @@ struct req {
 	char			*url;
 	struct curl_slist	*headers;
 	struct res		 resp;
-	const char		*data;
+	char			*data;
 	size_t			datasz;
 };
 
 
 int	http_init(struct req *);
 int	http_seturl(struct req *, const char *);
+int	http_setdata(struct req *, const char *);
 int	http_do(struct req *);
 void	http_free(struct req *);
 
